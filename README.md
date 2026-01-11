@@ -28,15 +28,6 @@ helm plugin install https://github.com/AK121120/helm-hooks-plugin
 curl -sSL https://github.com/AK121120/helm-hooks/releases/latest/download/helm-hooks-linux-amd64 -o helm-hooks
 chmod +x helm-hooks
 sudo mv helm-hooks /usr/local/bin/
-
-# Or use the install script
-curl -sSL https://raw.githubusercontent.com/AK121120/helm-hooks/main/plugin/install.sh | bash
-```
-
-### Container Image
-
-```bash
-docker pull quay.io/gkananthakrishna/helm-hooks:latest
 ```
 
 ## Usage

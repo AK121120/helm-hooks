@@ -1,16 +1,6 @@
 #!/bin/bash
 # Release script for helm-hooks
 # Usage: ./scripts/release.sh -v VERSION [--dry-run] [--skip-push]
-#
-# This script automates the entire release process:
-# 1. Runs tests and vulnerability scan
-# 2. Builds binaries for all platforms
-# 3. Generates release notes with placeholder for summary
-# 4. Copies binary to plugin submodule
-# 5. Commits and tags plugin submodule
-# 6. Commits and tags main repo
-# 7. Pushes everything to GitHub
-# 8. Pushes container to quay.io
 
 set -e
 
@@ -21,7 +11,6 @@ cd "$PROJECT_DIR"
 # Configuration
 GITHUB_REPO="AK121120/helm-hooks"
 PLUGIN_REPO="AK121120/helm-hooks-plugin"
-QUAY_REPO="quay.io/gkananthakrishna/helm-hooks"
 PLUGIN_DIR="helm-hooks-plugin"
 
 # Defaults
@@ -54,7 +43,7 @@ Usage: $0 -v VERSION [OPTIONS]
 Options:
   -v, --version VERSION   Version to release (required, e.g., 0.1.0)
   --dry-run               Show what would be done without executing
-  --skip-push             Build only, don't push to registries
+  --skip-push             Build only, don't push to GitHub
 
 Examples:
   $0 -v 0.1.0                     # Release v0.1.0
@@ -95,7 +84,6 @@ echo "Version:    $VERSION"
 echo "Git Commit: $GIT_COMMIT"
 echo "Build Date: $BUILD_DATE"
 echo "Dry Run:    $DRY_RUN"
-echo "Skip Push:  $SKIP_PUSH"
 echo
 
 #############################################
@@ -200,6 +188,28 @@ cat > "$RELEASE_NOTES_FILE" << EOF
 
 ---
 
+## Installation
+
+### Helm 4 (Plugin)
+
+\`\`\`bash
+helm plugin install https://github.com/$PLUGIN_REPO
+\`\`\`
+
+### Helm 3 (Binary)
+
+\`\`\`bash
+# Linux (amd64)
+curl -sSL https://github.com/$GITHUB_REPO/releases/download/$TAG/helm-hooks-linux-amd64 -o helm-hooks
+chmod +x helm-hooks
+
+# macOS (arm64)
+curl -sSL https://github.com/$GITHUB_REPO/releases/download/$TAG/helm-hooks-darwin-arm64 -o helm-hooks
+chmod +x helm-hooks
+\`\`\`
+
+---
+
 ## Downloads
 
 | Platform | Binary |
@@ -209,13 +219,6 @@ cat > "$RELEASE_NOTES_FILE" << EOF
 | macOS (amd64) | [helm-hooks-darwin-amd64](https://github.com/$GITHUB_REPO/releases/download/$TAG/helm-hooks-darwin-amd64) |
 | macOS (arm64) | [helm-hooks-darwin-arm64](https://github.com/$GITHUB_REPO/releases/download/$TAG/helm-hooks-darwin-arm64) |
 | Windows | [helm-hooks-windows-amd64.exe](https://github.com/$GITHUB_REPO/releases/download/$TAG/helm-hooks-windows-amd64.exe) |
-
-**Container:** \`$QUAY_REPO:$TAG\`
-
-**Helm 4 Plugin:**
-\`\`\`bash
-helm plugin install https://github.com/$PLUGIN_REPO
-\`\`\`
 
 ---
 
@@ -247,42 +250,10 @@ else
 fi
 
 #############################################
-# Step 6: Push to Quay.io
+# Step 6: Push to GitHub
 #############################################
 if [[ "$SKIP_PUSH" == "false" ]]; then
-    log_header "Step 6: Pushing to Quay.io"
-    
-    if [[ "$DRY_RUN" == "true" ]]; then
-        log_info "[DRY RUN] Would push to $QUAY_REPO:$TAG"
-    else
-        if command -v docker &>/dev/null; then
-            cat > Dockerfile.release << 'DOCKERFILE'
-FROM scratch
-COPY helm-hooks-linux-amd64 /helm-hooks
-ENTRYPOINT ["/helm-hooks"]
-DOCKERFILE
-            
-            log_info "Building container..."
-            docker build -f Dockerfile.release -t "$QUAY_REPO:$TAG" .
-            docker tag "$QUAY_REPO:$TAG" "$QUAY_REPO:latest"
-            
-            log_info "Pushing to quay.io..."
-            docker push "$QUAY_REPO:$TAG"
-            docker push "$QUAY_REPO:latest"
-            
-            rm Dockerfile.release
-            log_success "Pushed to $QUAY_REPO:$TAG"
-        else
-            log_info "Docker not found, skipping container push"
-        fi
-    fi
-fi
-
-#############################################
-# Step 7: Push to GitHub
-#############################################
-if [[ "$SKIP_PUSH" == "false" ]]; then
-    log_header "Step 7: Pushing to GitHub"
+    log_header "Step 6: Pushing to GitHub"
     
     if [[ "$DRY_RUN" == "true" ]]; then
         log_info "[DRY RUN] Would push plugin and main repo"
@@ -312,7 +283,6 @@ echo "Version: $TAG"
 echo
 echo "Artifacts:"
 echo "  - Binaries: helm-hooks-{linux,darwin,windows}-{amd64,arm64}"
-echo "  - Container: $QUAY_REPO:$TAG"
 echo "  - Plugin: https://github.com/$PLUGIN_REPO"
 echo "  - Release Notes: $RELEASE_NOTES_FILE"
 echo
