@@ -25,5 +25,5 @@ dist/
 coverage.out
 *.test
 
-# Release artifacts kept separate
-releases/
+# Docker
+Dockerfile.release
