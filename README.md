@@ -1,110 +1,82 @@
 # helm-hooks
 
 [![CI](https://github.com/AK121120/helm-hooks/actions/workflows/ci.yml/badge.svg)](https://github.com/AK121120/helm-hooks/actions/workflows/ci.yml)
-[![Release](https://github.com/AK121120/helm-hooks/actions/workflows/release.yml/badge.svg)](https://github.com/AK121120/helm-hooks/releases)
+[![Release](https://github.com/AK121120/helm-hooks/actions/workflows/release.yml/badge.svg)](https://github.com/AK121120/helm-hooks/actions/workflows/release.yml)
 
-A Helm post-renderer that enhances hooks with per-hook weights and environment injection.
+A Helm post-renderer that enhances hooks with **per-hook weights** and **environment injection**.
 
-## Features
+## The Problem
 
-- **Per-hook weights**: Different weights for different hook events
-- **Environment injection**: `HELM_HOOK_EVENT` and `HELM_HOOK_WEIGHT`
-- **Multi-hook splitting**: Splits resources with multiple hooks
-- **Auto-generate hooks**: Derive hooks from `helm.sh/hook-weights`
-- **Vulnerability scanned**: All releases pass govulncheck
+Helm's `helm.sh/hook-weight` applies the same weight to ALL hooks in a resource. When you need different weights for different hook events (e.g., `pre-install=-100, post-install=200`), you must duplicate the entire resource.
 
-## Installation
+**helm-hooks solves this** by:
+- Splitting multi-hook resources into separate ones with individual weights
+- Injecting hook context via environment variables
+- Supporting multiple weight formats for flexibility
+
+## Quick Start
 
 ### Helm 4 (Plugin)
 
 ```bash
-helm plugin install https://github.com/AK121120/helm-hooks-plugin
+helm plugin install https://github.com/AK121120/helm-hooks-plugin.git --verify=false
+helm install myapp ./chart --post-renderer helm-hooks
 ```
 
 ### Helm 3 (Binary)
 
 ```bash
-# Download latest binary
-curl -sSL https://github.com/AK121120/helm-hooks/releases/latest/download/helm-hooks-linux-amd64 -o helm-hooks
+curl -L https://github.com/AK121120/helm-hooks/releases/latest/download/helm-hooks-linux-amd64 -o helm-hooks
 chmod +x helm-hooks
-sudo mv helm-hooks /usr/local/bin/
+helm install myapp ./chart --post-renderer ./helm-hooks
 ```
 
-## Usage
+## Example
 
-```bash
-helm install myapp ./chart --post-renderer helm-hooks
-helm upgrade myapp ./chart --post-renderer helm-hooks
+**Input (one resource):**
+```yaml
+metadata:
+  annotations:
+    helm.sh/hook: pre-install,post-install
+    helm.sh/hook-weights: "pre-install=-100,post-install=200"
 ```
 
-## Annotations
+**Output (two resources with individual weights):**
+```yaml
+# Resource 1
+metadata:
+  name: myapp-hook-pre-install
+  annotations:
+    helm.sh/hook: pre-install
+    helm.sh/hook-weight: "-100"
+---
+# Resource 2
+metadata:
+  name: myapp-hook-post-install
+  annotations:
+    helm.sh/hook: post-install
+    helm.sh/hook-weight: "200"
+```
+
+## Documentation
+
+| Document | Description |
+|----------|-------------|
+| [Installation](docs/installation.md) | Helm 3 vs Helm 4 setup |
+| [Annotations](docs/annotations.md) | All supported annotations |
+| [Examples](docs/examples.md) | Usage examples and demo chart |
+| [Design](docs/DESIGN.md) | Architecture and design decisions |
+| [Contributing](docs/CONTRIBUTING.md) | How to contribute |
+| [Building](docs/building.md) | Build and release process |
+| [Troubleshooting](docs/troubleshooting.md) | Common issues and FAQ |
+
+## Supported Annotations
 
 | Annotation | Description |
 |------------|-------------|
-| `helm.sh/hook` | Hook events (comma-separated) |
-| `helm.sh/hook-weight` | Weight(s) for hooks |
-| `helm.sh/hook-weights` | Explicit per-hook weights |
-| `helm.sh/hook-env` | Enable/disable env injection (default: `true`) |
-
-## Examples
-
-### Multi-hook with different weights
-
-```yaml
-metadata:
-  annotations:
-    helm.sh/hook: pre-install,post-upgrade
-    helm.sh/hook-weights: "pre-install=-10,post-upgrade=100"
-```
-
-This creates two separate resources with their respective weights.
-
-### Auto-generate hooks
-
-```yaml
-metadata:
-  annotations:
-    helm.sh/hook-weights: "pre-install=-10,post-delete=100"
-```
-
-Hooks are derived from the weights annotation.
-
-## Version
-
-```bash
-helm-hooks version
-# helm-hooks 1.0.0
-#   Git Commit: abc1234
-#   Build Date: 2026-01-11T08:00:00Z
-```
-
-## Development
-
-```bash
-# Clone with submodules
-git clone --recurse-submodules https://github.com/AK121120/helm-hooks.git
-
-# Build
-make build
-
-# Test
-make test-all
-
-# Install as Helm 4 plugin (dev mode)
-make plugin-install
-```
-
-## Release
-
-```bash
-# Release a new version
-./scripts/release.sh -v 1.0.0
-
-# Preview release (dry run)
-./scripts/release.sh -v 1.0.0 --dry-run
-```
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) for details.
+| `helm.sh/hook-weights` | Per-hook weight mapping (explicit or positional) |
+| `helm.sh/hook-env` | Enable/disable env var injection (`true`/`false`) |
+| `helm.sh/hook-name-suffix` | Enable/disable hook name suffix (`true`/`false`) |
 
 ## License
 
