@@ -1,4 +1,5 @@
-# Delete hooks for cleanup
+# Delete hooks: AUTO-GENERATE hooks from weights only
+# Showcases: helm.sh/hook-weights WITHOUT helm.sh/hook - plugin auto-generates hook events
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -7,7 +8,7 @@ metadata:
     app: {{ .Release.Name }}
     hook-type: delete
   annotations:
-    helm.sh/hook: pre-delete,post-delete
+    # No helm.sh/hook annotation! Plugin auto-generates from hook-weights keys
     helm.sh/hook-weights: "pre-delete=-20,post-delete=20"
     helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
 spec:

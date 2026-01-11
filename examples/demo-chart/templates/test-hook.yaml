@@ -1,4 +1,5 @@
-# Test hook for helm test
+# Test hook: NATIVE HELM - PASSTHROUGH unchanged
+# Showcases: Single hook with native helm.sh/hook-weight - helm-hooks does NOT modify this
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -25,9 +26,8 @@ spec:
             - -c
             - |
               echo "============================================"
-              echo "TEST HOOK RUNNING"
-              echo "Hook Event: $HELM_HOOK_EVENT"
-              echo "Hook Weight: $HELM_HOOK_WEIGHT"
+              echo "TEST HOOK - NATIVE HELM PASSTHROUGH"
+              echo "This hook was NOT modified by helm-hooks plugin"
               echo "Release: {{ .Release.Name }}"
               echo "============================================"
               echo "Test passed!"

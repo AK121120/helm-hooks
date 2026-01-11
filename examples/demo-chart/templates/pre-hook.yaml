@@ -1,5 +1,5 @@
-# This hook runs on BOTH pre-install and pre-upgrade with DIFFERENT weights
-# The helm-hooks post-renderer will split this into 2 separate Jobs
+# Pre hooks: EXPLICIT format + env injection enabled (default)
+# Showcases: helm.sh/hook-weights with explicit hook=weight pairs
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -11,6 +11,7 @@ metadata:
     helm.sh/hook: pre-install,pre-upgrade
     helm.sh/hook-weights: "pre-install=-10,pre-upgrade=-5"
     helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+    # helm.sh/hook-env: "true"  (default - env vars will be injected)
 spec:
   template:
     metadata:

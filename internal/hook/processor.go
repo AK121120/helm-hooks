@@ -331,7 +331,9 @@ func parseWeights(annotations map[string]string, hooks []string) (map[string]int
 	return weights, nil
 }
 
-// parseExplicitWeights parses helm.sh/hook-weights format: "pre-install=-100,post-install=200"
+// parseExplicitWeights parses helm.sh/hook-weights in two formats:
+// 1. Explicit: "pre-install=-100,post-install=200"
+// 2. Positional: "-100,200" (matches order of hooks)
 func parseExplicitWeights(value string, hooks []string) (map[string]int, error) {
 	weights := make(map[string]int)
 
@@ -340,38 +342,70 @@ func parseExplicitWeights(value string, hooks []string) (map[string]int, error) 
 		weights[h] = defaultWeight
 	}
 
-	// Parse explicit mappings
-	for _, pair := range strings.Split(value, ",") {
-		pair = strings.TrimSpace(pair)
-		if pair == "" {
-			continue
+	parts := strings.Split(value, ",")
+	
+	// Detect format: if first part contains "=", it's explicit format
+	// Otherwise, it's positional format
+	isExplicit := false
+	for _, part := range parts {
+		if strings.Contains(part, "=") {
+			isExplicit = true
+			break
 		}
+	}
 
-		parts := strings.SplitN(pair, "=", 2)
-		if len(parts) != 2 {
-			return nil, fmt.Errorf("invalid weight mapping %q, expected format hook=weight", pair)
-		}
-
-		hookName := strings.TrimSpace(parts[0])
-		weightStr := strings.TrimSpace(parts[1])
-
-		// Verify hook exists
-		found := false
-		for _, h := range hooks {
-			if h == hookName {
-				found = true
-				break
+	if isExplicit {
+		// Explicit format: "pre-install=-100,post-install=200"
+		for _, pair := range parts {
+			pair = strings.TrimSpace(pair)
+			if pair == "" {
+				continue
 			}
+
+			kv := strings.SplitN(pair, "=", 2)
+			if len(kv) != 2 {
+				return nil, fmt.Errorf("invalid weight mapping %q, expected format hook=weight", pair)
+			}
+
+			hookName := strings.TrimSpace(kv[0])
+			weightStr := strings.TrimSpace(kv[1])
+
+			// Verify hook exists
+			found := false
+			for _, h := range hooks {
+				if h == hookName {
+					found = true
+					break
+				}
+			}
+			if !found {
+				return nil, fmt.Errorf("weight specified for unknown hook %q", hookName)
+			}
+
+			w, err := strconv.Atoi(weightStr)
+			if err != nil {
+				return nil, fmt.Errorf("invalid weight for hook %q: %w", hookName, err)
+			}
+			weights[hookName] = w
 		}
-		if !found {
-			return nil, fmt.Errorf("weight specified for unknown hook %q", hookName)
+	} else {
+		// Positional format: "-100,200"
+		if len(parts) != len(hooks) {
+			return nil, fmt.Errorf("positional weights count (%d) doesn't match hook count (%d)", len(parts), len(hooks))
 		}
 
-		w, err := strconv.Atoi(weightStr)
-		if err != nil {
-			return nil, fmt.Errorf("invalid weight for hook %q: %w", hookName, err)
+		for i, weightStr := range parts {
+			weightStr = strings.TrimSpace(weightStr)
+			if weightStr == "" {
+				continue
+			}
+
+			w, err := strconv.Atoi(weightStr)
+			if err != nil {
+				return nil, fmt.Errorf("invalid weight at position %d: %w", i+1, err)
+			}
+			weights[hooks[i]] = w
 		}
-		weights[hookName] = w
 	}
 
 	return weights, nil

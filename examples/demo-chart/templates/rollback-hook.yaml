@@ -1,4 +1,5 @@
-# Rollback hooks
+# Rollback hooks: POSITIONAL format + name suffix DISABLED
+# Showcases: helm.sh/hook-weights positional + helm.sh/hook-name-suffix: "false"
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -8,7 +9,8 @@ metadata:
     hook-type: rollback
   annotations:
     helm.sh/hook: pre-rollback,post-rollback
-    helm.sh/hook-weights: "pre-rollback=-15,post-rollback=25"
+    helm.sh/hook-weights: "-15,25"
+    helm.sh/hook-name-suffix: "false"
     helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
 spec:
   template:

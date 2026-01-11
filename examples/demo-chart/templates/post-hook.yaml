@@ -1,4 +1,5 @@
-# This hook runs on BOTH post-install and post-upgrade with DIFFERENT weights
+# Post hooks: POSITIONAL format + env injection DISABLED
+# Showcases: helm.sh/hook-weights with positional weights + helm.sh/hook-env: "false"
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -8,7 +9,8 @@ metadata:
     hook-type: post
   annotations:
     helm.sh/hook: post-install,post-upgrade
-    helm.sh/hook-weights: "post-install=10,post-upgrade=15"
+    helm.sh/hook-weights: "10,15"
+    helm.sh/hook-env: "false"
     helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
 spec:
   template:
@@ -25,9 +27,7 @@ spec:
             - -c
             - |
               echo "============================================"
-              echo "POST HOOK RUNNING"
-              echo "Hook Event: $HELM_HOOK_EVENT"
-              echo "Hook Weight: $HELM_HOOK_WEIGHT"
+              echo "POST HOOK RUNNING - NO ENV VARS INJECTED"
               echo "Release: {{ .Release.Name }}"
               echo "============================================"
               sleep 3
