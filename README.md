@@ -3,7 +3,9 @@
 [![CI](https://github.com/AK121120/helm-hooks/actions/workflows/ci.yml/badge.svg)](https://github.com/AK121120/helm-hooks/actions/workflows/ci.yml)
 [![Release](https://github.com/AK121120/helm-hooks/actions/workflows/release.yml/badge.svg)](https://github.com/AK121120/helm-hooks/actions/workflows/release.yml)
 
-A Helm post-renderer that enhances hooks with **per-hook weights** and **environment injection**.
+helm-hooks is an **Advanced Hook Manager** for Helm. It powers up your Helm charts by enabling **per-hook weights**, **auto-splitting** of multi-hook resources, and **environment variable injection**.
+
+Basically, it fixes the limitation where Helm applies one weight to all hooks in a resource.
 
 ## The Problem
 
@@ -65,8 +67,8 @@ metadata:
 | [Installation](docs/installation.md) | Helm 3 vs Helm 4 setup |
 | [Annotations](docs/annotations.md) | All supported annotations |
 | [Examples](docs/examples.md) | Usage examples and demo chart |
-| [Design](docs/DESIGN.md) | Architecture and design decisions |
-| [Contributing](docs/CONTRIBUTING.md) | How to contribute |
+| [Design](docs/design.md) | Architecture and design decisions |
+| [Contributing](docs/contributing.md) | How to contribute |
 | [Building](docs/building.md) | Build and release process |
 | [Troubleshooting](docs/troubleshooting.md) | Common issues and FAQ |
 
