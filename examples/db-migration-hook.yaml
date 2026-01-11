@@ -1,0 +1,25 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ .Release.Name }}-db-migration
+  annotations:
+    # Run before install and after upgrade, with different weights
+    helm.sh/hook: pre-install,post-upgrade
+    helm.sh/hook-weights: "pre-install=-10,post-upgrade=10"
+    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+spec:
+  template:
+    spec:
+      containers:
+        - name: migrate
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          command: ["./migrate.sh"]
+          # HELM_HOOK_EVENT and HELM_HOOK_WEIGHT are auto-injected
+          # You can use them in your script:
+          # if [ "$HELM_HOOK_EVENT" = "pre-install" ]; then
+          #   ./full-migration.sh
+          # else
+          #   ./incremental-migration.sh
+          # fi
+      restartPolicy: Never
+  backoffLimit: 1

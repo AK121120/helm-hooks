@@ -1,0 +1,35 @@
+# This hook runs on BOTH post-install and post-upgrade with DIFFERENT weights
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ .Release.Name }}-post-hook
+  labels:
+    app: {{ .Release.Name }}
+    hook-type: post
+  annotations:
+    helm.sh/hook: post-install,post-upgrade
+    helm.sh/hook-weights: "post-install=10,post-upgrade=15"
+    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+spec:
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}
+        hook-type: post
+    spec:
+      containers:
+        - name: post-hook
+          image: {{ .Values.hookImage }}
+          command:
+            - /bin/sh
+            - -c
+            - |
+              echo "============================================"
+              echo "POST HOOK RUNNING"
+              echo "Hook Event: $HELM_HOOK_EVENT"
+              echo "Hook Weight: $HELM_HOOK_WEIGHT"
+              echo "Release: {{ .Release.Name }}"
+              echo "============================================"
+              sleep 3
+      restartPolicy: Never
+  backoffLimit: 0

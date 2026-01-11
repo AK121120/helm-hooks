@@ -1,0 +1,3 @@
+[submodule "helm-hooks-plugin"]
+	path = helm-hooks-plugin
+	url = https://github.com/AK121120/helm-hooks-plugin.git

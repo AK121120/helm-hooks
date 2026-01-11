@@ -1,0 +1,35 @@
+# Delete hooks for cleanup
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ .Release.Name }}-delete-hook
+  labels:
+    app: {{ .Release.Name }}
+    hook-type: delete
+  annotations:
+    helm.sh/hook: pre-delete,post-delete
+    helm.sh/hook-weights: "pre-delete=-20,post-delete=20"
+    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+spec:
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}
+        hook-type: delete
+    spec:
+      containers:
+        - name: delete-hook
+          image: {{ .Values.hookImage }}
+          command:
+            - /bin/sh
+            - -c
+            - |
+              echo "============================================"
+              echo "DELETE HOOK RUNNING"
+              echo "Hook Event: $HELM_HOOK_EVENT"
+              echo "Hook Weight: $HELM_HOOK_WEIGHT"
+              echo "Release: {{ .Release.Name }}"
+              echo "============================================"
+              sleep 3
+      restartPolicy: Never
+  backoffLimit: 0

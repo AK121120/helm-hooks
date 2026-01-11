@@ -1,0 +1,16 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: myapp-init
+  annotations:
+    helm.sh/hook: pre-install
+    helm.sh/hook-weight: "5"
+    helm.sh/hook-env: "false"
+spec:
+  template:
+    spec:
+      containers:
+        - name: init
+          image: busybox
+          command: ["echo", "init"]
+      restartPolicy: Never

@@ -1,0 +1,19 @@
+apiVersion: v1
+name: helm-hooks
+version: 0.1.0
+type: postrenderer/v1
+usage: "Enhances Helm hooks with per-hook weights and environment injection"
+description: |-
+  A post-renderer that adds per-hook weights and hook awareness to Helm.
+  
+  Features:
+  - Split multi-hook resources into separate resources
+  - Assign different weights per hook event
+  - Inject HELM_HOOK_EVENT and HELM_HOOK_WEIGHT environment variables
+  - Auto-generate hooks from helm.sh/hook-weights annotation
+  
+  Works with both Helm 3 and Helm 4.
+runtime: subprocess
+runtimeConfig:
+  platformCommand:
+    - command: ./helm-hooks

@@ -1,0 +1,15 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: myapp-cleanup
+  annotations:
+    helm.sh/hook: pre-install,post-install,post-upgrade
+    helm.sh/hook-weights: "pre-install=-50,post-install=100,post-upgrade=150"
+spec:
+  template:
+    spec:
+      containers:
+        - name: cleanup
+          image: busybox
+          command: ["echo", "cleanup"]
+      restartPolicy: Never

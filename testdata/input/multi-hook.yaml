@@ -1,0 +1,15 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: myapp-migration
+  annotations:
+    helm.sh/hook: pre-install,post-upgrade
+    helm.sh/hook-weight: "-100,200"
+spec:
+  template:
+    spec:
+      containers:
+        - name: migrate
+          image: busybox
+          command: ["echo", "migrate"]
+      restartPolicy: Never

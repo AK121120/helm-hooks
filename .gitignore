@@ -1,0 +1,29 @@
+# Binaries (exclude by extension/suffix patterns, not submodule)
+/helm-hooks
+helm-hooks-linux-*
+helm-hooks-darwin-*
+helm-hooks-windows-*
+*.exe
+
+# Dependencies
+vendor/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build
+dist/
+
+# Test artifacts
+coverage.out
+*.test
+
+# Release artifacts kept separate
+releases/
